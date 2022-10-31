@@ -7,6 +7,7 @@ package txauthor
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
@@ -43,11 +44,15 @@ type InputSourceError interface {
 }
 
 // Default implementation of InputSourceError.
-type insufficientFundsError struct{}
+type insufficientFundsError struct{
+	InputAmount btcutil.Amount
+	TargetAmount btcutil.Amount
+	TargetFee btcutil.Amount
+}
 
 func (insufficientFundsError) InputSourceError() {}
-func (insufficientFundsError) Error() string {
-	return "insufficient funds available to construct transaction"
+func (e insufficientFundsError) Error() string {
+	return fmt.Sprintf("insufficient funds available to construct transaction: %v, %v, %v", e.InputAmount, e.TargetAmount, e.TargetFee)
 }
 
 // AuthoredTx holds the state of a newly-created transaction and the change
@@ -105,7 +110,7 @@ func NewUnsignedTransaction(outputs []*wire.TxOut, feeRatePerKb btcutil.Amount,
 			return nil, err
 		}
 		if inputAmount < targetAmount+targetFee {
-			return nil, insufficientFundsError{}
+			return nil, insufficientFundsError{InputAmount: inputAmount, TargetAmount: targetAmount, TargetFee: targetFee}
 		}
 
 		// We count the types of inputs, which we'll use to estimate
