@@ -146,6 +146,10 @@ type Interface interface {
 	CurrentAddress(account uint32, scope waddrmgr.KeyScope) (
 		btcutil.Address, error)
 
+	// SortedActivePaymentAddresses returns a slice of all active payment
+	// addresses in a wallet.
+	SortedActivePaymentAddresses() ([]string, error)
+
 	// NewAddress returns a new address for a given account and scope.
 	NewAddress(account uint32, scope waddrmgr.KeyScope) (
 		btcutil.Address, error)
@@ -241,6 +245,14 @@ type Interface interface {
 
 	// ListLeasedOutputs returns a list of all currently leased outputs.
 	ListLeasedOutputs() ([]*ListLeasedOutputResult, error)
+
+	// DumpPrivKeys returns the WIF-encoded private keys for all addresses with
+	// private keys in a wallet.
+	DumpPrivKeys() ([]string, error)
+
+	// DumpWIFPrivateKey returns the WIF encoded private key for a
+	// single wallet address.
+	DumpWIFPrivateKey(addr btcutil.Address) (string, error)
 
 	// CreateSimpleTx creates a new transaction to the specified outputs,
 	// automatically performing coin selection and creating a change output
